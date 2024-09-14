@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Meal Model
+model Meal{
+  id String @id @default(cuid())
+  name String
+  description String
+  price Int
+  type String
+  image String
+  isAvailableForPurchase Boolean @default(true)
+  checkOutMealRelation CheckOut[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// type model
+model MealType{
+  id String @id @default(cuid())
+  name String
+
+  // mealId String
+  // mealTypeRelation Meal @relation(fields: [mealId], references: [id])
+}
+
+// CheckOut Model
+model CheckOut{
+  id String @id @default(cuid())
+  name String
+  description String?
+  price Int
+
+  userId String
+  mealId String
+  checkOutUserRelation User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  checkOutMealRelation Meal @relation(fields: [mealId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Next Auth Model Schema
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? 
+  access_token       String? 
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? 
+  session_state      String?
+ 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+ 
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+ 
+  @@map("sessions")
+}
+ 
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  role String?
+  checkOutRelation CheckOut[]
+ 
+  @@map("users")
+}
+ 
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+ 
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
