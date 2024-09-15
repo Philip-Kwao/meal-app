@@ -12,18 +12,26 @@ import {
 import { CheckCircle2, MoreVertical, XCircle } from "lucide-react";
 import { db } from "@/db/db";
 import { formatCurrency, formatNumber } from "@/lib/formatters";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
+import { DeleteProduct, ToggleActivate } from "./_components/MealActions";
 
 export default async function MealsPage() {
   const mealData = await db.meal.findMany({
     orderBy: { name: "asc" },
-    select:{
-      id:true,
-      name:true,
-      price:true,
-      isAvailableForPurchase:true,
-      _count:{select:{checkOutMealRelation:true}},
-      type:true
-    }
+    select: {
+      id: true,
+      name: true,
+      price: true,
+      isAvailableForPurchase: true,
+      _count: { select: { checkOutMealRelation: true } },
+      type: true,
+    },
   });
 
   return (
@@ -53,17 +61,37 @@ export default async function MealsPage() {
           {mealData.map((meal) => (
             <TableRow key={meal.id}>
               <TableCell className="font-medium">
-                <span className="w-0 sr-only">Is Meal Available
-                </span>
-                  {meal.isAvailableForPurchase ? <CheckCircle2 />:<XCircle />}
+                <span className="w-0 sr-only">Is Meal Available</span>
+                {meal.isAvailableForPurchase ? <CheckCircle2 /> : <XCircle />}
               </TableCell>
               <TableCell className="font-medium">{meal.name}</TableCell>
               <TableCell className="font-medium">{meal.type}</TableCell>
-              <TableCell className="font-medium">{formatCurrency(meal.price)}</TableCell>
-              <TableCell className="font-medium">{formatNumber(meal._count.checkOutMealRelation)}</TableCell>
               <TableCell className="font-medium">
-                <span className="w-0 sr-only">Actions</span>
-                <MoreVertical />
+                {formatCurrency(meal.price)}
+              </TableCell>
+              <TableCell className="font-medium">
+                {formatNumber(meal._count.checkOutMealRelation)}
+              </TableCell>
+              <TableCell className="font-medium">
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <span className="w-0 sr-only">Actions</span>
+                    <MoreVertical />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem>
+                      <Link href={`/admin/meals/${meal.id}/edit`}>Edit</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <ToggleActivate />
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <DeleteProduct />
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>Subscription</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}

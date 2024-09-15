@@ -3,7 +3,7 @@
 import { db } from "@/db/db";
 import { string, z } from "zod";
 import fs from "fs/promises";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 // Define a max file size and allowed image types
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif"];
@@ -64,6 +64,49 @@ export async function addMeal(prevState:unknown,formdata: FormData) {
   redirect("/admin/meals");
 }
 
+const editSchema = addMealSchema.extend({
+  meal_image: imageSchema.optional()
+})
+
+export async function updateMeal(id:string                                                                       ,prevState:unknown,formdata: FormData) {
+    const results = editSchema.safeParse(
+        Object.fromEntries(formdata.entries())
+    );
+    // console.log(results)
+  
+  if (results.success === false) {
+      return results.error.formErrors.fieldErrors;
+    }
+    
+    const data = results.data;
+    const meal = await db.meal.findUnique({where:{id}})
+    // console.log(data)
+    if(meal == null) return notFound()
+  let image =meal.image
+  if(data.meal_image != null && data.meal_image.size>0){
+    await fs.unlink(`public${meal.image}`) 
+     image = `/meals/${crypto.randomUUID()}-${data.meal_image.name}`;
+    await fs.writeFile(
+      `public${image}`,
+      Buffer.from(await data.meal_image.arrayBuffer())
+    );
+  }
+
+  await db.meal.update({
+    where:{id},
+    data: {
+      name: data.name_of_meal,
+      description: data.description_of_meal,
+      price: data.price_of_meal,
+      image,
+      isAvailableForPurchase: false,
+      type: data.type
+    },
+  });
+
+  redirect("/admin/meals");
+}
+
 // Meal Type Schema
 const addMealTypeSchema = z.object({
     name:z.string().min(1),
@@ -83,5 +126,6 @@ export async function addMealType(prevState:unknown,formdata: FormData) {
         name:data.name,
     },
   })
-  redirect("/admin/meals/new")
+  
+  redirect("/admin/meals/typeOfMeal")
 }
