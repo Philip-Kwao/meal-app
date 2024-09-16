@@ -19,7 +19,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
-import { DeleteProduct, ToggleActivate } from "./_components/MealActions";
+import { DeleteMeal, ToggleActivate } from "./_components/MealActions";
 
 export default async function MealsPage() {
   const mealData = await db.meal.findMany({
@@ -82,14 +82,9 @@ export default async function MealsPage() {
                     <DropdownMenuItem>
                       <Link href={`/admin/meals/${meal.id}/edit`}>Edit</Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <ToggleActivate />
-                    </DropdownMenuItem>
+                      <ToggleActivate id={meal.id} isAvailableForPurchase={meal.isAvailableForPurchase} />
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <DeleteProduct />
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>Subscription</DropdownMenuItem>
+                      <DeleteMeal id={meal.id} disabled={meal._count.checkOutMealRelation >0} />
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>

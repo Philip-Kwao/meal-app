@@ -129,3 +129,16 @@ export async function addMealType(prevState:unknown,formdata: FormData) {
   
   redirect("/admin/meals/typeOfMeal")
 }
+
+export async function toggleAvailability(id:string, isAvailableForPurchase:boolean){
+  await db.meal.update({where:{id},
+  data:{
+    isAvailableForPurchase
+  }
+  })
+}
+
+export async function DeleteMealFunc({id}:{id:string}){
+  const meal=await db.meal.delete({where:{id}})
+  if(meal == null) return notFound()
+}
